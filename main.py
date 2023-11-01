@@ -1,4 +1,6 @@
 #https://discord.com/api/oauth2/authorize?client_id=1169037598803640501&permissions=8&scope=bot
+import asyncio
+from datetime import datetime
 import os
 import discord
 from discord import app_commands 
@@ -11,11 +13,11 @@ load_dotenv()
 # Initiating the bot
 intents = discord.Intents().all()
 activity = discord.Activity(name='to quran', type=discord.ActivityType.listening)
-bot = discord.Client(intents=intents, activity=activity)
+bot = discord.Client(intents=intents, activity=activity, allowed_mentions = discord.AllowedMentions(everyone = True))
 tree = app_commands.CommandTree(bot)
 token = os.getenv('TOKEN')
 guild_id = 1169038417942822932
-
+channel_id = 1169074414554447882
 
 @bot.event
 async def on_ready():
@@ -47,4 +49,18 @@ async def ping(interaction: discord.Interaction):
         formatted_prayer_times += f"{key}: {value}\n"
      
     await interaction.response.send_message(formatted_prayer_times)
+
+#notify adhan time
+async def send_prayer_time():
+    prayer_times_data = get_prayer_times()
+    prayer_times = prayer_times_data["data"][0]["timings"]
+
+    while not bot.is_closed():
+        current_time = datetime.now().strftime('%H:%M')
+        for prayer, time in prayer_times.items():
+            if current_time == time:
+                channel = bot.get_channel(channel_id)  
+                await channel.send(f"It's time for {prayer} prayer @everyone !")
+        await asyncio.sleep(3600)
+        
 bot.run(token)
