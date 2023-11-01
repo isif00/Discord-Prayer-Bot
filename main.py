@@ -4,6 +4,8 @@ import discord
 from discord import app_commands 
 from dotenv import load_dotenv
 
+from api.calendar import get_prayer_times
+
 load_dotenv()
 
 # Initiating the bot
@@ -27,10 +29,22 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-#Setting up the commands
+#Ping Pong
 @tree.command(name = "ping", description = "Ping the bot", guild=discord.Object(id=guild_id)) 
 @app_commands.describe()
 async def ping(interaction: discord.Interaction):
     await interaction.response.send_message("Pong!")
 
+#get prayer times
+@tree.command(name = "prayer-times", description = "get the prayer times", guild=discord.Object(id=guild_id)) 
+@app_commands.describe()
+async def ping(interaction: discord.Interaction):
+    prayer_times_data = get_prayer_times()
+    prayer_times = prayer_times_data["data"][0]["timings"]
+    formatted_prayer_times = ""
+
+    for key, value in prayer_times.items():
+        formatted_prayer_times += f"{key}: {value}\n"
+     
+    await interaction.response.send_message(formatted_prayer_times)
 bot.run(token)
